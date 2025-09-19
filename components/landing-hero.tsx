@@ -19,14 +19,14 @@ export function LandingHero({ onFetchTranscript, isLoading = false, error }: Lan
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url.trim()) return;
-    
+
     await onFetchTranscript(url);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/10" />
-      
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -44,14 +44,14 @@ export function LandingHero({ onFetchTranscript, isLoading = false, error }: Lan
               <Play className="w-8 h-8 text-white" />
             </div>
           </div>
-          
+
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-4 tracking-tight">
-            YouTube Q&A
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-red-500">
-              with AI
+            Seek
+            <span className=" text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-red-500">
+              Tube
             </span>
           </h1>
-          
+
           <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-2xl mx-auto leading-relaxed">
             Paste a link, fetch the transcript, and ask anything about the video
           </p>
@@ -79,7 +79,7 @@ export function LandingHero({ onFetchTranscript, isLoading = false, error }: Lan
                     disabled={isLoading}
                   />
                 </div>
-                
+
                 <Button
                   type="submit"
                   size="lg"
@@ -98,13 +98,13 @@ export function LandingHero({ onFetchTranscript, isLoading = false, error }: Lan
                   {isLoading ? 'Fetching Transcript...' : 'Fetch Transcript'}
                 </Button>
               </form>
-              
+
               {error && (
                 <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
                   <p className="text-sm text-red-600">{error}</p>
                 </div>
               )}
-              
+
               <div className="mt-6 text-center">
                 <p className="text-sm text-gray-500">
                   Supports YouTube videos with available transcripts

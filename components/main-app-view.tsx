@@ -41,7 +41,7 @@ export function MainAppView({ videoUrl, transcript, talkAgent }: MainAppViewProp
 
     try {
       const response = await talkAgent.askQuestion(content);
-      
+
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
@@ -65,12 +65,12 @@ export function MainAppView({ videoUrl, transcript, talkAgent }: MainAppViewProp
 
   const handleSummarize = async () => {
     if (!talkAgent) return;
-    
+
     setIsGenerating(true);
-    
+
     try {
       const summaryContent = await talkAgent.getVideoSummary();
-      
+
       const summary: ChatMessage = {
         id: Date.now().toString(),
         type: 'ai',
@@ -113,11 +113,11 @@ export function MainAppView({ videoUrl, transcript, talkAgent }: MainAppViewProp
               <FileText className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">YouTube Q&A</h1>
+              <h1 className="text-xl font-bold text-gray-900">SeekTube</h1>
               <p className="text-sm text-gray-500 truncate max-w-md">{videoUrl}</p>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-3">
             <Button
               variant="outline"
@@ -129,7 +129,7 @@ export function MainAppView({ videoUrl, transcript, talkAgent }: MainAppViewProp
               <MessageSquare className="w-4 h-4 mr-2" />
               Summarize Video
             </Button>
-            
+
             <Button
               variant="outline"
               size="sm"

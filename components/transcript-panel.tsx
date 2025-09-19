@@ -15,7 +15,7 @@ export function TranscriptPanel({ transcript }: TranscriptPanelProps) {
       const timestampMatch = chunk.match(/^\[(\d{2}:\d{2})\]/);
       const timestamp = timestampMatch ? timestampMatch[1] : null;
       const content = chunk.replace(/^\[\d{2}:\d{2}\]\s*/, '');
-      
+
       return {
         id: index,
         timestamp,
@@ -34,7 +34,7 @@ export function TranscriptPanel({ transcript }: TranscriptPanelProps) {
           Video Transcript
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="p-0 flex-1 min-h-0">
         <ScrollArea className="h-full px-6 pb-6">
           <div className="space-y-1">
@@ -55,7 +55,7 @@ export function TranscriptPanel({ transcript }: TranscriptPanelProps) {
                     </span>
                   </div>
                 )}
-                
+
                 <div className="flex-1">
                   <p className="text-gray-800 leading-relaxed">
                     {chunk.content}
