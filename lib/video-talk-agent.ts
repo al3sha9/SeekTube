@@ -7,10 +7,12 @@ export interface ChatMessage {
 export class VideoTalkAgent {
   private transcript: string;
   private chatHistory: ChatMessage[];
+  private sessionId: string;
 
-  constructor(transcript: string) {
+  constructor(transcript: string, sessionId?: string) {
     this.transcript = transcript;
     this.chatHistory = [];
+    this.sessionId = sessionId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   async askQuestion(question: string): Promise<string> {
@@ -32,7 +34,8 @@ export class VideoTalkAgent {
         body: JSON.stringify({
           question: question,
           transcript: this.transcript,
-          chatHistory: this.chatHistory
+          chatHistory: this.chatHistory,
+          sessionId: this.sessionId
         }),
       });
 
@@ -70,6 +73,16 @@ export class VideoTalkAgent {
   updateTranscript(newTranscript: string): void {
     this.transcript = newTranscript;
     this.clearHistory(); // Clear history when transcript changes
+    // Generate new session ID for new transcript
+    this.sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  getSessionId(): string {
+    return this.sessionId;
+  }
+
+  setSessionId(sessionId: string): void {
+    this.sessionId = sessionId;
   }
 
   // Helper method to get video summary

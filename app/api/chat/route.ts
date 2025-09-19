@@ -1,12 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
+import { BufferMemory } from 'langchain/memory';
+import { ConversationChain } from 'langchain/chains';
+import { PromptTemplate } from '@langchain/core/prompts';
+import { HumanMessage, AIMessage } from '@langchain/core/messages';
+import { conversationStorage } from '@/lib/conversation-storage';
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+// Initialize the Gemini model
+const model = new ChatGoogleGenerativeAI({
+  model: 'gemini-1.5-flash',
+  temperature: 0.7,
+  apiKey: process.env.GOOGLE_API_KEY,
+});
+
+// Create a custom prompt template for video context awareness
+const videoContextPrompt = PromptTemplate.fromTemplate(`
+You are a helpful AI assistant designed to answer questions about video content. You have access to the full transcript of a video and should use this information to provide accurate, contextual responses.
+
+Video Transcript:
+{transcript}
+
+Current conversation:
+{history}
+
+Instructions:
+1. Use the video transcript as your primary source of information
+2. Maintain context from previous messages in the conversation
+3. Provide specific references to parts of the video when relevant
+4. If a question cannot be answered from the transcript, clearly state that
+5. Be helpful, accurate, and engaging in your responses
+6. Keep track of what has been discussed to avoid repetition`);
+
+// Store for conversation memories (in production, use a database)
+const conversationMemories = new Map<string, BufferMemory>();
+
+// Helper function to get or create memory for a session
+function getOrCreateMemory(sessionId: string): BufferMemory {
+  if (!conversationMemories.has(sessionId)) {
+    const memory = new BufferMemory({
+      returnMessages: true,
+      memoryKey: 'history',
+    });
+    conversationMemories.set(sessionId, memory);
+  }
+  return conversationMemories.get(sessionId)!;
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { question, transcript, chatHistory } = await request.json();
+    const { question, transcript, chatHistory, sessionId = 'default' } = await request.json();
 
     if (!question || !transcript) {
       return NextResponse.json(
@@ -15,53 +57,60 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: 'Gemini API key not configured' },
-        { status: 500 }
-      );
+    // Get or create conversation in storage
+    let conversation = conversationStorage.getConversation(sessionId);
+    if (!conversation) {
+      conversation = conversationStorage.createConversation(sessionId, transcript);
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Get conversation memory for this session
+    const memory = getOrCreateMemory(sessionId);
 
-    const historyContext = chatHistory && chatHistory.length > 0 
-      ? `\n\nChat History:\n${chatHistory.slice(-6).map((msg: any) => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`).join('\n')}`
-      : '';
+    // Load conversation history into memory
+    for (let i = 0; i < conversation.messages.length; i += 2) {
+      const userMsg = conversation.messages[i];
+      const assistantMsg = conversation.messages[i + 1];
 
-    const prompt = `You are an AI assistant that helps users understand and discuss a YouTube video based on its transcript. 
-You have access to the full transcript of the video and can answer questions about its content, themes, key points, and provide insights.
+      if (userMsg && assistantMsg && userMsg.role === 'user' && assistantMsg.role === 'assistant') {
+        await memory.saveContext(
+          { input: userMsg.content },
+          { output: assistantMsg.content }
+        );
+      }
+    }
+
+    // Create conversation chain with memory
+    const chain = new ConversationChain({
+      llm: model,
+      memory: memory,
+      prompt: PromptTemplate.fromTemplate(`
+You are a helpful AI assistant designed to answer questions about video content. You have access to the full transcript of a video and should use this information to provide accurate, contextual responses.
 
 Video Transcript:
-${transcript}${historyContext}
+${transcript}
 
-Guidelines:
-- Answer questions based solely on the content of the video transcript
-- Be conversational and engaging
-- If asked about something not covered in the transcript, politely mention that the information isn't available in this video
-- Provide timestamps when referencing specific parts of the video
-- Feel free to summarize, explain concepts, or make connections between different parts of the video
-- If the user asks for clarification or follow-up questions, use the context from previous messages
+{history}
+Human: {input}
+Assistant:`),
+    });
 
-Current Question: ${question}
+    // Save user message to storage
+    conversationStorage.addMessage(sessionId, 'user', question);
 
-Response:`;
+    // Generate response - ConversationChain only expects 'input'
+    const response = await chain.predict({
+      input: question,
+    });
 
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const text = response.text();
+    // Save assistant response to storage
+    conversationStorage.addMessage(sessionId, 'assistant', response);
 
-    return NextResponse.json({ response: text });
+    return NextResponse.json({ response });
+
   } catch (error) {
-    console.error('Chat API error:', error);
-    
-    const errorMessage = error instanceof Error 
-      ? error.message 
-      : 'Failed to generate response';
-    
+    console.error('Error in chat API:', error);
     return NextResponse.json(
-      { error: errorMessage },
+      { error: 'Failed to generate response' },
       { status: 500 }
     );
   }
