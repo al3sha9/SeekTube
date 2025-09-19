@@ -27,7 +27,7 @@ export function TranscriptPanel({ transcript }: TranscriptPanelProps) {
   const chunks = parseTranscript(transcript);
 
   return (
-    <Card className="h-full shadow-lg border-0 bg-white">
+    <Card className="h-full shadow-lg border-0 bg-white flex flex-col">
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center text-lg font-semibold text-gray-900">
           <Clock className="w-5 h-5 mr-2 text-red-500" />
@@ -35,7 +35,7 @@ export function TranscriptPanel({ transcript }: TranscriptPanelProps) {
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="p-0 h-[calc(100vh-200px)]">
+      <CardContent className="p-0 flex-1 min-h-0">
         <ScrollArea className="h-full px-6 pb-6">
           <div className="space-y-1">
             {chunks.map((chunk, index) => (

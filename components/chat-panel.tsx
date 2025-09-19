@@ -30,7 +30,11 @@ export function ChatPanel({ messages, onSendMessage, isGenerating }: ChatPanelPr
     if (scrollAreaRef.current) {
       const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        // Smooth scroll to bottom
+        scrollContainer.scrollTo({
+          top: scrollContainer.scrollHeight,
+          behavior: 'smooth'
+        });
       }
     }
   }, [messages]);
@@ -38,7 +42,7 @@ export function ChatPanel({ messages, onSendMessage, isGenerating }: ChatPanelPr
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isGenerating) return;
-    
+
     onSendMessage(input.trim());
     setInput('');
   };
@@ -51,7 +55,7 @@ export function ChatPanel({ messages, onSendMessage, isGenerating }: ChatPanelPr
           AI Assistant
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="flex-1 flex flex-col p-0 min-h-0">
         {/* Messages */}
         <ScrollArea ref={scrollAreaRef} className="flex-1 px-6">
@@ -65,7 +69,7 @@ export function ChatPanel({ messages, onSendMessage, isGenerating }: ChatPanelPr
                 >
                   <p className="text-gray-500 text-center">
                     Ask any question about the video content!<br />
-                    <span className="text-sm">I'll help you understand and explore the topics discussed.</span>
+                    <span className="text-sm">I&apos;ll help you understand and explore the topics discussed.</span>
                   </p>
                 </motion.div>
               ) : (
@@ -78,7 +82,7 @@ export function ChatPanel({ messages, onSendMessage, isGenerating }: ChatPanelPr
                 ))
               )}
             </AnimatePresence>
-            
+
             {isGenerating && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}

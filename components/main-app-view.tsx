@@ -145,13 +145,13 @@ export function MainAppView({ videoUrl, transcript, talkAgent }: MainAppViewProp
       </motion.header>
 
       {/* Main Content */}
-      <div className="flex flex-col lg:flex-row max-w-7xl mx-auto p-6 gap-6 min-h-[calc(100vh-88px)]">
+      <div className="flex flex-col lg:flex-row max-w-7xl mx-auto p-6 gap-6 h-[calc(100vh-88px)]">
         {/* Transcript Panel */}
         <motion.div
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="lg:w-1/2"
+          className="lg:w-1/2 h-full"
         >
           <TranscriptPanel transcript={transcript} />
         </motion.div>
@@ -161,7 +161,7 @@ export function MainAppView({ videoUrl, transcript, talkAgent }: MainAppViewProp
           initial={{ x: 20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="lg:w-1/2"
+          className="lg:w-1/2 h-full"
         >
           <ChatPanel
             messages={messages}
